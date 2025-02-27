@@ -15,8 +15,7 @@ export const fetchAPI = async (url, method = "GET", body = null) => {
         `Error when using ${method} call for url - ${url}. Status: ${response.status}`
       );
     }
-    const data = await response.json();
-    return data;
+    return response;
   } catch (error) {
     console.log(
       `Error when using ${method} call for url - ${url}. Error: `,

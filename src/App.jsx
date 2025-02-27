@@ -4,17 +4,17 @@ import getFrontendOptions from "./FrontendOptions/FrontendOptions.js";
 import getBackendOptions from "./BackendOptions/BackendOptions.js";
 import FeatureOptions from "./FeaturesOptions/FeaturesOptions.js";
 import getDatabaseOptions from "./DatabaseOptions/DatabaseOptions.js";
-import getCICDOptions from "./CICD_Options/CicdOptions.js";
 
-import { FeaturesOptions } from "./FeaturesOptions/FeaturesOptions.js";
+import FeaturesOptions from "./FeaturesOptions/FeaturesOptions.js";
 import { fetchAPI } from "./util/fetchAPI.js";
+
+import { getBlob } from "./util/getBlobFromResponse.js";
 
 export default function App() {
   const [frontend, setFrontend] = useState("");
   const [backend, setBackend] = useState("");
   const [features, setFeatures] = useState([]);
   const [database, setDatabase] = useState("");
-  const [cicd, setCicd] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
   const [canSubmit, setCanSubmit] = useState(false);
@@ -39,43 +39,17 @@ export default function App() {
     setCanSubmit(frontend.length && backend.length);
   };
 
-  const handleCICDChange = (event) => {
-    setCicd(event.target.value);
-
-    // Check if the frontend and backend are selected
-    const baseOptions = frontend.length && backend.length;
-
-    // Validate if the selected database exists in the FeatureOptions
-    const isValidDatabase =
-      database.length && FeatureOptions.databases.includes(database);
-
-    // Set canSubmit to true if both frontend, backend, and a valid database (if applicable) are selected
-    setCanSubmit(baseOptions && isValidDatabase);
-  };
-
   const handleFeatureChange = (event) => {
     const { value, checked } = event.target;
     setFeatures((prev) =>
       checked ? [...prev, value] : prev.filter((item) => item !== value)
     );
 
-    if (value.includes(FeaturesOptions.DATABASE)) {
+    if (value.includes(FeaturesOptions.Options.DATABASE)) {
       if (checked) {
-        //User clicked on DB feature, only set to true when they select a DB option
         setCanSubmit(false);
       } else {
-        //User unchecked DB
         setDatabase("");
-      }
-    }
-
-    if (value.includes(FeaturesOptions.CICD)) {
-      if (checked) {
-        //User clicked on CICD feature, only set to true when they select a CICD option
-        setCanSubmit(false);
-      } else {
-        //User unchecked CICD
-        setCicd("");
       }
     }
   };
@@ -85,7 +59,6 @@ export default function App() {
     setBackend("");
     setFeatures([]);
     setDatabase("");
-    setCicd("");
 
     setCanSubmit(false);
   };
@@ -101,15 +74,18 @@ export default function App() {
 
       if (features.length > 0) {
         codebaseOptions.Features = features.map((feature) => {
-          // Replace ' ', '/', and '-' in the feature key to form the key name for the object
-          const _featureKey = feature
-            // .replace(/ /g, "")
-            .replace(/\//g, "");
-          console.log(_featureKey);
+          console.log("feature: " + feature);
+          // const _featureKey = feature
+          //   .replace(/ /g, "_") // Replace spaces with underscores
+          //   .replace(/\//g, "") // Remove slashes
+          //   .replace(/-/g, "_") // Remove hyphens
+          //   .toLowerCase(); // Convert to lowercase
+
+          // console.log("Key: " + _featureKey); // Debugging
 
           const featureObj = {};
           // Dynamically assign feature to correct object key based on transformed key
-          featureObj[_featureKey] = _featureKey;
+          featureObj[feature] = feature;
           return featureObj;
         });
       }
@@ -118,18 +94,16 @@ export default function App() {
         const db = database.replace(/ /g, "");
         codebaseOptions.Database = { [db]: db };
       }
-      if (cicd.length > 0) {
-        const _cicd = cicd.replace(/ /g, "").replace(/\//g, "");
-        codebaseOptions.CICD = {
-          [_cicd]: _cicd,
-        };
+      try {
+        const response = await fetchAPI(
+          "https://localhost:7213/api/GenerateCodebase",
+          "POST",
+          codebaseOptions
+        );
+        getBlob(response);
+      } catch (error) {
+        console.error("Error downloading file:", error);
       }
-
-      await fetchAPI(
-        "https://localhost:7213/api/GenerateCodebase",
-        "POST",
-        codebaseOptions
-      );
     } catch (error) {
       console.log("Error: ", error);
     }
@@ -190,7 +164,7 @@ export default function App() {
           ))}
         </div>
 
-        {features.includes(FeaturesOptions.DATABASE) && (
+        {features.includes(FeaturesOptions.Options.DATABASE) && (
           <div className="section">
             <h3>Select Database</h3>
             {getDatabaseOptions().map((db) => (
@@ -203,24 +177,6 @@ export default function App() {
                   onChange={handleDatabaseChange}
                 />
                 {db}
-              </label>
-            ))}
-          </div>
-        )}
-
-        {features.includes(FeaturesOptions.CICD) && (
-          <div className="section">
-            <h3>Select CI/CD Method</h3>
-            {getCICDOptions().map((method) => (
-              <label key={method}>
-                <input
-                  type="radio"
-                  name="cicd"
-                  value={method}
-                  checked={cicd === method}
-                  onChange={handleCICDChange}
-                />
-                {method}
               </label>
             ))}
           </div>

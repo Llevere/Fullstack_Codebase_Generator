@@ -1,8 +1,7 @@
 export const DatabaseOptions = Object.freeze({
   MYSQL: "MySQL",
-  POSTGRESQL: "PostgreSQL",
-  MONGODB: "MongoDB",
-  SQLITE: "SQLite",
+  // POSTGRESQL: "PostgreSQL",
+  // MONGODB: "MongoDB",
 });
 
 export default function getDatabaseOptions() {

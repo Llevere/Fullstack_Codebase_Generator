@@ -4,9 +4,8 @@ export default class FeatureOptions {
     JWT_AUTHENTICATION: "JWT Authentication",
     ROLE_BASED_ACCESS: "Role-Based Access",
     DATABASE: "Database",
-    GRAPHQL: "GraphQL",
-    WEBSOCKETS: "WebSockets",
-    CICD: "CI/CD",
+    // GRAPHQL: "GraphQL",
+    // WEBSOCKETS: "WebSockets",
   });
 
   // Static method to return the values of FeaturesOptions
